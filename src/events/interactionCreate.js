@@ -401,6 +401,17 @@ export default {
             traceId: interactionTraceContext.traceId
           });
         }
+          if (interaction.isButton()) {
+    if (interaction.customId === 'full_schedule') {
+        const fullText = Object.values(schedule).join("\n\n");
+
+        await interaction.reply({
+            content: fullText,
+            ephemeral: true // 👈 только тому, кто нажал
+        });
+    }
+}
+        }
       }
     });
   }
