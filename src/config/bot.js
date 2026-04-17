@@ -30,7 +30,7 @@ export const botConfig = {
     activities: [
       {
         // Text users will see (example: "Playing /help | Titan Bot").
-        name: "Made with ❤️",
+        name: "Made with Imerua",
         // Activity type number (0 = Playing).
         type: 0, 
       },
@@ -546,6 +546,76 @@ export function getRandomColor() {
   );
   return colors[Math.floor(Math.random() * colors.length)];
 }
+import discord
+from discord import app_commands
+from discord.ext import commands
+from datetime import datetime
+import pytz
+
+TOKEN = "MTQ5NDY0Mzc4MDUzMDM0Mzk5Ng.Gb_GAX.BjzjUPKAlZIkpzOqerJyK9hBIP4NPhx5EpW0wU"
+
+intents = discord.Intents.default()
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+# 📅 Расписание (редактируй под себя)
+schedule = {
+    "Monday": "Понедельник:\n- НОКС\n- Работа\n- ВЕЧЕРИНКА",
+    "Tuesday": "Вторник:\n- Кодинг\n- Спорт",
+    "Wednesday": "Среда:\n- Отдых\n- Игры",
+    "Thursday": "Четверг:\n- Учеба\n- Проект",
+    "Friday": "Пятница:\n- Работа\n- Вечеринка",
+    "Saturday": "Суббота:\n- Отдых\n- Друзья",
+    "Sunday": "Воскресенье:\n- Чилл\n- Подготовка к неделе"
+}
+
+# 📌 Получение текущего дня (с таймзоной)
+def get_today():
+    tz = pytz.timezone("Europe/Copenhagen")  # 🇩🇰 Москва
+    now = datetime.now(tz)
+    return now.strftime("%A")
+
+# 🔘 Кнопка для просмотра всей недели
+class FullScheduleView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=60)
+
+    @discord.ui.button(label="Показать всю неделю", style=discord.ButtonStyle.primary)
+    async def show_all(self, interaction: discord.Interaction, button: discord.ui.Button):
+        full_text = "\n\n".join(schedule.values())
+
+        await interaction.response.send_message(
+            full_text,
+            ephemeral=True  # 👈 только тому, кто нажал
+        )
+
+# 📅 Slash команда — сегодня
+@bot.tree.command(name="расписание", description="Показать расписание на сегодня")
+async def today_schedule(interaction: discord.Interaction):
+    today = get_today()
+    text = schedule.get(today, "Нет расписания")
+
+    await interaction.response.send_message(
+        f"📅 Сегодня:\n{text}",
+        view=FullScheduleView()
+    )
+
+# 📅 Slash команда — вся неделя
+@bot.tree.command(name="всянеделя", description="Показать расписание на всю неделю")
+async def full_schedule(interaction: discord.Interaction):
+    full_text = "\n\n".join(schedule.values())
+
+    await interaction.response.send_message(
+        full_text,
+        ephemeral=True  # 👈 только тебе
+    )
+
+# 🚀 Запуск
+@bot.event
+async def on_ready():
+    await bot.tree.sync()
+    print(f"Бот запущен как {bot.user}")
+
+bot.run(TOKEN)
 
 export default botConfig;
 
