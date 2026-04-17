@@ -552,70 +552,49 @@ from discord.ext import commands
 from datetime import datetime
 import pytz
 
-TOKEN = "MTQ5NDY0Mzc4MDUzMDM0Mzk5Ng.Gb_GAX.BjzjUPKAlZIkpzOqerJyK9hBIP4NPhx5EpW0wU"
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
-intents = discord.Intents.default()
-bot = commands.Bot(command_prefix="!", intents=intents)
+// 📅 Расписание
+const schedule = {
+    Monday: "Понедельник:\n- Тренировка\n- Работа\n- Учеба",
+    Tuesday: "Вторник:\n- Кодинг\n- Спорт",
+    Wednesday: "Среда:\n- Отдых\n- Игры",
+    Thursday: "Четверг:\n- Учеба\n- Проект",
+    Friday: "Пятница:\n- Работа\n- Вечеринка",
+    Saturday: "Суббота:\n- Отдых\n- Друзья",
+    Sunday: "Воскресенье:\n- Чилл\n- Подготовка к неделе"
+};
 
-# 📅 Расписание (редактируй под себя)
-schedule = {
-    "Monday": "Понедельник:\n- НОКС\n- Работа\n- ВЕЧЕРИНКА",
-    "Tuesday": "Вторник:\n- Кодинг\n- Спорт",
-    "Wednesday": "Среда:\n- Отдых\n- Игры",
-    "Thursday": "Четверг:\n- Учеба\n- Проект",
-    "Friday": "Пятница:\n- Работа\n- Вечеринка",
-    "Saturday": "Суббота:\n- Отдых\n- Друзья",
-    "Sunday": "Воскресенье:\n- Чилл\n- Подготовка к неделе"
+// 📌 Получение дня (Дания)
+function getToday() {
+    return new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        timeZone: "Europe/Copenhagen"
+    });
 }
 
-# 📌 Получение текущего дня (с таймзоной)
-def get_today():
-    tz = pytz.timezone("Europe/Copenhagen")  # 🇩🇰 Москва
-    now = datetime.now(tz)
-    return now.strftime("%A")
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('расписание')
+        .setDescription('Показать расписание на сегодня'),
 
-# 🔘 Кнопка для просмотра всей недели
-class FullScheduleView(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=60)
+    async execute(interaction) {
+        const today = getToday();
+        const text = schedule[today] || "Нет расписания";
 
-    @discord.ui.button(label="Показать всю неделю", style=discord.ButtonStyle.primary)
-    async def show_all(self, interaction: discord.Interaction, button: discord.ui.Button):
-        full_text = "\n\n".join(schedule.values())
+        const button = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('full_schedule')
+                .setLabel('Показать всю неделю')
+                .setStyle(ButtonStyle.Primary)
+        );
 
-        await interaction.response.send_message(
-            full_text,
-            ephemeral=True  # 👈 только тому, кто нажал
-        )
-
-# 📅 Slash команда — сегодня
-@bot.tree.command(name="расписание", description="Показать расписание на сегодня")
-async def today_schedule(interaction: discord.Interaction):
-    today = get_today()
-    text = schedule.get(today, "Нет расписания")
-
-    await interaction.response.send_message(
-        f"📅 Сегодня:\n{text}",
-        view=FullScheduleView()
-    )
-
-# 📅 Slash команда — вся неделя
-@bot.tree.command(name="всянеделя", description="Показать расписание на всю неделю")
-async def full_schedule(interaction: discord.Interaction):
-    full_text = "\n\n".join(schedule.values())
-
-    await interaction.response.send_message(
-        full_text,
-        ephemeral=True  # 👈 только тебе
-    )
-
-# 🚀 Запуск
-@bot.event
-async def on_ready():
-    await bot.tree.sync()
-    print(f"Бот запущен как {bot.user}")
-
-bot.run(TOKEN)
+        await interaction.reply({
+            content: `📅 Сегодня:\n${text}`,
+            components: [button]
+        });
+    }
+};
 
 export default botConfig;
 
